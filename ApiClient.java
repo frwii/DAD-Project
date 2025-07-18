@@ -142,10 +142,8 @@ public class ApiClient {
         return false;
     }
 
- // --- UPDATED --- Method signature now requires a courierId
     public static boolean updateParcelStatus(String parcelId, String newStatus, int courierId) {
         try {
-            // --- UPDATED --- The map now includes the courier_id
             // We convert the integer courierId to a String for the POST request.
             Map<String, String> params = Map.of(
                 "parcel_id", parcelId,
