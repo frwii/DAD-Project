@@ -1,8 +1,11 @@
-package src;
+package smartparcel;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap; // For creating the data map
+import java.util.Map;     // For the Map type
 import javax.swing.*;
+import javax.swing.SwingWorker; // For running API calls in the background
 
 public class ParcelDeliveryRequest {
 
@@ -113,8 +116,49 @@ public class ParcelDeliveryRequest {
 					JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+		
+		// Create a map of data to send to the API
+	    Map<String, String> formData = new HashMap<>();
+	    formData.put("sender_name", senderNameField.getText());
+	    formData.put("sender_phone", senderPhoneField.getText());
+	    formData.put("sender_address", senderAddressField.getText());
+	    formData.put("receiver_name", receiverNameField.getText());
+	    formData.put("receiver_phone", receiverPhoneField.getText());
+	    formData.put("receiver_address", receiverAddressField.getText());
+	    formData.put("pickup_point", pickupPointField.getText());
+	    formData.put("drop_off_point", dropPointField.getText());
 
-		showParcelSummary();
+	    // Call the API in a background thread to avoid freezing the UI
+	    new SwingWorker<Boolean, Void>() {
+	        @Override
+	        protected Boolean doInBackground() throws Exception {
+	            return ApiClient.createParcel(formData);
+	        }
+
+	        @Override
+	        protected void done() {
+	            try {
+	                if (get()) {
+	                    JOptionPane.showMessageDialog(frame, 
+	                        "Delivery request created successfully!", 
+	                        "Success", 
+	                        JOptionPane.INFORMATION_MESSAGE);
+	                    resetForm(); // Clear the form on success
+	                } else {
+	                    JOptionPane.showMessageDialog(frame, 
+	                        "Failed to create delivery request. Please try again.", 
+	                        "API Error", 
+	                        JOptionPane.ERROR_MESSAGE);
+	                }
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	                JOptionPane.showMessageDialog(frame, 
+	                    "An error occurred: " + e.getMessage(), 
+	                    "Error", 
+	                    JOptionPane.ERROR_MESSAGE);
+	            }
+	        }
+	    }.execute();
 	}
 
 	private boolean isEmpty(JTextField field) {
@@ -127,32 +171,6 @@ public class ParcelDeliveryRequest {
 
 	private boolean isValidName(String name) {
 		return name.matches("[a-zA-Z\\s]+");
-	}
-
-	private void showParcelSummary() {
-		String parcelId = "P" + parcelCounter;
-
-		String senderInfo = "Sender Info:\n" +
-				"Name: " + senderNameField.getText() + "\n" +
-				"Phone: " + senderPhoneField.getText() + "\n" +
-				"Address: " + senderAddressField.getText() + "\n";
-
-		String receiverInfo = "Receiver Info:\n" +
-				"Name: " + receiverNameField.getText() + "\n" +
-				"Phone: " + receiverPhoneField.getText() + "\n" +
-				"Address: " + receiverAddressField.getText() + "\n";
-
-		String deliveryInfo = "Pickup Point : " + pickupPointField.getText() + "\n" +
-				"Drop-off Point: " + dropPointField.getText();
-
-		String fullMessage = "--- Parcel Delivery Request ---\n\n" +
-				"Parcel ID: " + parcelId + "\n\n" +
-				senderInfo + "\n" + receiverInfo + "\n" + deliveryInfo;
-
-		JOptionPane.showMessageDialog(frame, fullMessage, "Parcel Summary", JOptionPane.INFORMATION_MESSAGE);
-
-		parcelCounter++; // Increment ID for next request
-		resetForm();     // Clear form
 	}
 
 	private void resetForm() {
