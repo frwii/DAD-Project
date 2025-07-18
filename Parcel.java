@@ -26,4 +26,9 @@ public class Parcel {
     public String getPickupPoint() { return pickupPoint; }
     public String getDropPoint() { return dropPoint; }
     public String getStatus() { return status; }
+
+    @Override
+    public String toString() {
+        return parcelId + " - To: " + receiverName + " (" + status + ")";
+    }
 }
